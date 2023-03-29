@@ -5,7 +5,7 @@ import multiprocessing
 import math
 
 class geneticAlgorithm:
-    def __init__(self, PARAMETERS, POPULATION_SIZE = None, MUTATION_PERCENTAGE = None, CROSSOVER_RATE = None, ELITISM_RATE = None, QUIT_VAL, NUMBER_OF_GENERATIONS = None, FITNESS_LOC, DATA_VALS, RUN_TYPE = None, GA_TYPE = None, VERBOSE = None):
+    def __init__(self, PARAMETERS, QUIT_VAL, FITNESS_LOC, DATA_VALS, POPULATION_SIZE = None, MUTATION_PERCENTAGE = None, CROSSOVER_RATE = None, ELITISM_RATE = None, NUMBER_OF_GENERATIONS = None, RUN_TYPE = None, GA_TYPE = None, VERBOSE = None):
 
         #Here we assign the default arguments:
         if POPULATION_SIZE==None:
