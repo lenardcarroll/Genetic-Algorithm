@@ -93,3 +93,66 @@ else:
     from GA import geneticAlgorithm
     GA = geneticAlgorithm(PARAMETERS, FIT_PARAM, FITNESS_FUNC_NAME, DATA_VALUES, POPULATION_SIZE, MUTATION_RATE, CROSSOVER_RATE, ELITISM_RATE, NUMBER_OF_GENERATIONS, RUN_TYPE, CROSSOVER_METHOD, VERBOSE)
 ```
+
+Here is the example without all the comments:
+```
+
+import random
+from random import choice
+import numpy as np
+import math
+from multiprocessing import freeze_support
+
+X = np.arange(0.1, 10, 0.1)
+Y = np.array(2*(np.array(X))**2 - 3*(np.array(X)) + 5)
+
+DATA_VALS = [X,Y]
+
+p0 = range(-10,10)
+p1 = range(-10,10)
+p2 = range(-10,10)
+
+PARAMETERS = [p0,p1,p2]
+
+def fitness(individual, DATA_VALS):
+    X = np.array(DATA_VALS[0])
+    Y = np.array(DATA_VALS[1])
+    
+    P1 = individual[0]
+    P2 = individual[1]
+    P3 = individual[2]
+
+    Y_new = P1*(X)**2 + P2*(X) + P3
+
+    RMSD = []
+    for i in range(len(Y)):
+        RMSD_value = np.sqrt((Y_new[i]-Y[i])**2)
+        if math.isnan(RMSD_value):
+            return 0
+        else:
+            RMSD.append(RMSD_value)
+    RMSD = np.mean(np.array(RMSD))
+    return 1/(1+RMSD)
+
+FIT_PARAM = 0.95
+POPULATION_SIZE = 1000
+MUTATION_RATE = 0.01
+CROSSOVER_RATE = 0.8
+ELITISM_RATE = 0.1
+FITNESS_FUNC_NAME = fitness
+DATA_VALUES = DATA_VALS
+RUN_TYPE = "serial"
+NUMBER_OF_GENERATIONS = -1
+CROSSOVER_METHOD = "Weighted"
+VERBOSE = 1
+
+if RUN_TYPE == "parallel":
+    if __name__ == '__main__': 
+        freeze_support() 
+        from GA import geneticAlgorithm 
+        GA = geneticAlgorithm(PARAMETERS, FIT_PARAM, FITNESS_FUNC_NAME, DATA_VALUES, POPULATION_SIZE, MUTATION_RATE, CROSSOVER_RATE, ELITISM_RATE, NUMBER_OF_GENERATIONS, RUN_TYPE, CROSSOVER_METHOD, VERBOSE)
+
+else:
+    from GA import geneticAlgorithm
+    GA = geneticAlgorithm(PARAMETERS, FIT_PARAM, FITNESS_FUNC_NAME, DATA_VALUES, POPULATION_SIZE, MUTATION_RATE, CROSSOVER_RATE, ELITISM_RATE, NUMBER_OF_GENERATIONS, RUN_TYPE, CROSSOVER_METHOD, VERBOSE)
+```
