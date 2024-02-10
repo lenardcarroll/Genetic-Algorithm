@@ -28,7 +28,7 @@ class geneticAlgorithm:
         POPULATION_SIZE = int(POPULATION_SIZE)
         NUMBER_OF_GENERATIONS = int(NUMBER_OF_GENERATIONS)
 
-        if MUTATION_PERCENTAGE < 0 or CROSSOVER_RATE < 0 or ELITISM_RATE < 0 or (VERBOSE !=0 or VERBOSE != 1) or POPULATION_SIZE == 0 or NUMBER_OF_GENERATIONS == 0:
+        if MUTATION_PERCENTAGE < 0 or CROSSOVER_RATE < 0 or ELITISM_RATE < 0 or (VERBOSE !=0 and VERBOSE != 1) or POPULATION_SIZE == 0 or NUMBER_OF_GENERATIONS == 0:
             print("Your arguments are incorrect! Please fix it")
             exit()
 
