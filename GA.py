@@ -1,5 +1,4 @@
 import random
-from random import choice
 import numpy as np
 import multiprocessing
 import math
@@ -72,29 +71,28 @@ class geneticAlgorithm:
             # 5 - 0.002 = -4.998
             for i in range(len(individual)):
                 individual[i] += random.uniform(-np.abs(individual[i]*mutation_rate),np.abs(individual[i]*mutation_rate))
-                return individual
+            return individual
 
         # Here we define the elitism function, where we decide how many individuals from the population go through to the next generation unchanged
-        def elitism(population, fitness_scores,elitism_rate, population_size):
+        # The user defines a value elitism_rate, which is the percentage of the fittest individuals that will move straight to the next generation.
+        # Let's say the population has 50 individuals and the rate is 10%, that means the fittest 50*0.1 = 5 indivuals from this generation will go
+        # to the next generation wouldn't crossing or being mutated
+        def elitism(population, fitness_scores, elitism_rate, population_size):
             new_population_index = []
             new_population = []
-            # The user defines a value elitism_rate, which is the percentage of the fittest individuals that will move straight to the next generation.
-            # Let's say the population has 50 individuals and the rate is 10%, that means the fittest 50*0.1 = 5 indivuals from this generation will go
-            # to the next generation wouldn't crossing or being mutated
-            for i in range(int(population_size*elitism_rate)):
+            for i in range(int(population_size * elitism_rate)):
                 temp_max = max(fitness_scores)
-                if temp_max not in new_population:
-                    new_population_index.append(fitness_scores.index(temp_max))
-                    new_population.append(temp_max)
+                idx = fitness_scores.index(temp_max)
+                if idx not in new_population_index:
+                    new_population_index.append(idx)
+                    new_population.append(population[idx])
                 else:
-                    temp_max = 0
-                    for j in range(len(fitness_scores)):
-                        if fitness_scores[j]>temp_max and fitness_scores[j] not in new_population:
-                            temp_max = fitness_scores[j]
-
-                    new_population_index.append(fitness_scores.index(temp_max))
-                    new_population.append(temp_max)
-
+                    fitness_copy = fitness_scores[:]
+                    for used in new_population_index:
+                        fitness_copy[used] = -float("inf")
+                    idx = fitness_copy.index(max(fitness_copy))
+                    new_population_index.append(idx)
+                    new_population.append(population[idx])
             return new_population_index
 
 
@@ -109,7 +107,9 @@ class geneticAlgorithm:
 
             # If selector random is chosen, then N number of offspring will be generated for the next genration from N random individuals of the current generation.
             # N has to be an even number
-            if ga_type == "Random" or ga_type == "random":
+            ga_type = ga_type.lower()
+            
+            if ga_type == "random":
                 range_val = math.floor(population_size*(crossover_rate-elitism_rate)/2)
                 if range_val > math.floor(len(population)/2):
                     range_val = math.floor(len(population)/2)
@@ -129,31 +129,31 @@ class geneticAlgorithm:
                     new_population.append(child1)
                     new_population.append(child2)
                     parent1_index = population.index(parent1)
-
-                    population.remove(parent1)
-                    fitness_scores.remove(fitness_scores[parent1_index])
-                    
-                    parent2_index = population.index(parent2)
-                    population.remove(parent2)
-                    fitness_scores.remove(fitness_scores[parent2_index])
+                    parent2_index = population.index(parent2)  
+                                      
+                    indices = sorted([parent1_index, parent2_index], reverse=True)
+                    for idx in indices:
+                        del population[idx]
+                        del fitness_scores[idx]
                   
                 return (population,new_population,fitness_scores)
 
             # If selector ranked is chosen, then N number of offspring will be generated for the next genration from the N fittest individuals of the current remaining generation.
             # N has to be an even number
-            elif ga_type == "Ranked" or ga_type == "ranked":
+            elif ga_type == "ranked":
                 range_val = math.floor(population_size*(crossover_rate-elitism_rate)/2)
                 if range_val > math.floor(len(population)/2):
                     range_val = math.floor(len(population)/2)
                 for i in range(range_val):
-                    max_parent1 = fitness_scores.index(max(fitness_scores))
-                    parent1 = population[max_parent1]
-                    population.remove(parent1)
-                    fitness_scores.remove(max(fitness_scores))
-                    max_parent2 = fitness_scores.index(max(fitness_scores))
-                    parent2 = population[max_parent2]
-                    population.remove(parent2)
-                    fitness_scores.remove(max(fitness_scores))
+                    parent1_index = fitness_scores.index(max(fitness_scores))
+                    parent1 = population[parent1_index]
+                    del population[parent1_index]
+                    del fitness_scores[parent1_index]
+
+                    parent2_index = fitness_scores.index(max(fitness_scores))
+                    parent2 = population[parent2_index]
+                    del population[parent2_index]
+                    del fitness_scores[parent2_index]
 
                     child1, child2 = crossover(parent1, parent2)
                     child1 = mutate(child1, mutation_rate)
@@ -166,7 +166,7 @@ class geneticAlgorithm:
             # If selector weighted is chosen, then N number of offspring will be generated for the next genration from N random individuals of the current generation, but.
             # weights are applied, giving preference to the fittest individuals, however weaker individuals could still be selected
             # N has to be an even number
-            elif ga_type == "Weighted" or ga_type == "weighted":
+            elif ga_type == "weighted":
                 range_val = math.floor(population_size*(crossover_rate-elitism_rate)/2)
                 if range_val > math.floor(len(population)/2):
                     range_val = math.floor(len(population)/2)
@@ -186,20 +186,15 @@ class geneticAlgorithm:
                     new_population.append(child1)
                     new_population.append(child2)
                     parent1_index = population.index(parent1)
-
-                    population.remove(parent1)
-                    fitness_scores.remove(fitness_scores[parent1_index])
-                    
                     parent2_index = population.index(parent2)
-
-                    population.remove(parent2)
-                    fitness_scores.remove(fitness_scores[parent2_index])
+                    for idx in sorted([parent1_index, parent2_index], reverse=True):
+                        del population[idx]
+                        del fitness_scores[idx]
 
                 return (population, new_population, fitness_scores)
 
             # If the crossover rate plus the elitism rate exceeds the value of 1, the crossover rate will be adjusted to be equal to 1 - elitism rate.
 
-        
         k = 1
         while k!=0:
             # Evaluate the fitness of each individual in the population
@@ -211,7 +206,9 @@ class geneticAlgorithm:
             # The code is somewhat parallelized, so if you typed in the parallel keyword for RUN_TYPE, the code will use multiprocessing. Otherwise, it will go
             # with the serialized approach
             # Here the fitness score for each individual is calculated
-            if RUN_TYPE == "parallel" or RUN_TYPE == "Parallel":
+            RUN_TYPE = RUN_TYPE.lower()
+
+            if RUN_TYPE == "parallel":
                 with multiprocessing.Pool() as pool:
                     fitness_scores = pool.map(self.calculate_fitness, [(individual, DATA_VALS) for individual in population])
             else:
@@ -245,10 +242,9 @@ class geneticAlgorithm:
                 new_population.append(population[i])
 
             # Individuals from the new population is removed from the old population
-            for i in new_population:
-                pop_index = population.index(i)
-                population.remove(i)
-                fitness_scores.remove(fitness_scores[pop_index])
+            for idx in sorted(new_population_index, reverse=True):
+                del population[idx]
+                del fitness_scores[idx]
 
             # We create new individuals through a crossover and mutation. This function removes old population members.
             crossover_population = createchildren(population, fitness_scores, CROSSOVER_RATE, ELITISM_RATE, MUTATION_PERCENTAGE, POPULATION_SIZE, GA_TYPE)
